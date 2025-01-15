@@ -1,0 +1,117 @@
+on('chat:message', function(msg) {
+    // Only respond to API messages:
+    if (msg.type !== 'api') return;
+
+    const content = msg.content.trim();
+
+    // We look for the command "!wizard2"
+    // Example usage in chat (with queries):
+    // !wizard2 ?{Attack Name|Flaming Sword}
+    //          |?{Primary Damage Type|Slashing}
+    //          |?{Attack Roll|1d20+7}
+    //          |?{Primary Damage Roll|1d8+3}
+    //          |?{Primary Crit Roll|2d8+3}
+    //          |?{Secondary Damage Type|Fire}
+    //          |?{Secondary Damage Roll|1d6+2}
+    //          |?{Secondary Crit Roll|2d6+2}
+    
+     if (content.startsWith('!wizard')) {
+        // Remove "!wizard", leaving the part after it
+        let raw = content.slice('!wizard'.length).trim();
+        if (!raw) {
+            sendChat('Wizard', 'Usage: !wizard ?{Attack Name|Basic Attack}|?{Damage Type|Slashing}|?{Attack Roll|1d20+7}|?{Damage Roll|1d8+3}|?{Crit Roll|2d8+3}');
+            return;
+        }
+
+        // Split on '|'
+        let parts = raw.split('|');
+        // Expect 5 pieces: 
+        //   0 => Attack Name
+        //   1 => Damage Type
+        //   2 => Attack Roll
+        //   3 => Damage Roll
+        //   4 => Crit Roll
+        if (parts.length < 5) {
+            sendChat('Wizard', 'Error: Not enough fields. Expected 5 (AttackName, DamageType, AttackRoll, DamageRoll, CritRoll).');
+            return;
+        }
+
+        // Extract them (trim each piece just in case)
+        let attackName  = parts[0].trim();
+        let damageType  = parts[1].trim();
+        let attackRoll  = parts[2].trim();
+        let damageRoll  = parts[3].trim();
+        let critRoll    = parts[4].trim();
+
+        // Build the final "customAttack" line (single-damage).
+        // Adjust this to match your script's usage. For instance:
+        // !customAttack @{selected|token_id}|@{target|token_id}|AttackName|DamageType|AttackRoll|DamageRoll|CritRoll
+        let finalMacro =
+`!customAttack @&#123;selected|token_id&#125;|@&#123;target|token_id&#125;|${attackName}|${damageType}|${attackRoll}|${damageRoll}|${critRoll}|?&#123;RollType?|normal,false|advantage,advantage|disadvantage,disadvantage&#125;`;
+
+        // Send a whisper back to the user with the final macro (copy & paste)
+        // "msg.who" might be the player's display name, so we whisper to them.
+        sendChat('Wizard', `**Here’s your attack macro** (copy & paste into a Macro or Ability):${finalMacro}`);
+    }
+    
+    if (content.startsWith('!2wizard')) {
+        // Remove "!wizard2" to get the part after it
+        let raw = content.slice('!2wizard'.length).trim();
+        if (!raw) {
+            sendChat('2Wizard', 'Usage:\n' +
+                '!wizard2 ?{Attack Name|Flaming Sword}' +
+                '|?{Primary Damage Type|Slashing}' +
+                '|?{Attack Roll|1d20+7}' +
+                '|?{Primary Damage Roll|1d8+3}' +
+                '|?{Primary Crit Roll|2d8+3}' +
+                '|?{Secondary Damage Type|Fire}' +
+                '|?{Secondary Damage Roll|1d6+2}' +
+                '|?{Secondary Crit Roll|2d6+2}'
+            );
+            return;
+        }
+
+        // Split on '|'
+        let parts = raw.split('|');
+        // Expect 8 pieces:
+        //  0 => Attack Name
+        //  1 => Primary Damage Type
+        //  2 => Attack Roll
+        //  3 => Primary Damage Roll
+        //  4 => Primary Crit Roll
+        //  5 => Secondary Damage Type
+        //  6 => Secondary Damage Roll
+        //  7 => Secondary Crit Roll
+        if (parts.length < 8) {
+            sendChat('2Wizard', 'Error: Not enough fields. Expected 8:\n' +
+                '(1) Attack Name\n' +
+                '(2) Primary Damage Type\n' +
+                '(3) Attack Roll\n' +
+                '(4) Primary Damage Roll\n' +
+                '(5) Primary Crit Roll\n' +
+                '(6) Secondary Damage Type\n' +
+                '(7) Secondary Damage Roll\n' +
+                '(8) Secondary Crit Roll\n'
+            );
+            return;
+        }
+
+        // Extract them (trim each piece just in case)
+        let attackName         = parts[0].trim();
+        let primaryDamageType  = parts[1].trim();
+        let attackRoll         = parts[2].trim();
+        let primaryDamageRoll  = parts[3].trim();
+        let primaryCritRoll    = parts[4].trim();
+        let secondaryDamageType= parts[5].trim();
+        let secondaryDamageRoll= parts[6].trim();
+        let secondaryCritRoll  = parts[7].trim();
+
+        // Build the final "!custom2Attack" line. 
+        // Adjust if your existing script or syntax differs.
+        let finalMacro =
+`!custom2Attack @&#123;selected|token_id&#125;|@&#123;target|token_id&#125;|${attackName}|${primaryDamageType}|${attackRoll}|${primaryDamageRoll}|${primaryCritRoll}|${secondaryDamageType}|${secondaryDamageRoll}|${secondaryCritRoll}|?&#123;RollType?|normal,false|advantage,advantage|disadvantage,disadvantage&#125;`;
+
+        // Send a whisper back to the user with the final macro (copy & paste)
+        sendChat('', ` Here’s your two-damage attack macro** (copy & paste into a Macro or Ability):${finalMacro}`);
+    }
+});
